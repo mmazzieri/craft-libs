@@ -1,26 +1,17 @@
-# Synthetic reproducer: a `.doc` table cell's text direction
+# A table cell's text direction in a .doc (storytold/craft-libs#2529)
 
-Everything here is invented and was made by `make-turned-cells-doc.ps1` with Word 16 (COM) on Windows.
+This branch held a `.doc` and a `.docx` saved by Word through a COM script, Word's PDF, WordCraft's
+PDFs and a picture comparing them. They are removed: under the clean-room standard a fixture is
+written by a committed script from our own inputs, and an agent does not drive Word to make one.
 
-`turned-cells.doc` and `turned-cells.docx` are the same table, saved by Word in both formats. It has two rows of three cells, each row exactly 90 pt high:
+A `.doc` cannot be written here without a compound-file writer, so there is no replacement file.
+The reader change is covered by the tests of storytold/craft-libs#2541, which build the TC80s and
+the `sprmTTextFlow` operands from [MS-DOC]:
 
-| | cell 1 | cell 2 | cell 3 |
-|---|---|---|---|
-| row 1 | horizontal | upward (`btLr`) | downward (`tbRl`) |
-| row 2 | downward (`tbRl`) | horizontal | upward (`btLr`) |
+- `text_direction_kept_in_tc80s_is_read`
+- `an_explicit_text_flow_overrides_the_tc80`
 
-**What Word writes in the `.doc`:**
+The layout of the records, from [MS-DOC]: `textFlow` is bits 2–4 of the `TCGRF`; `sprmTTextFlow`
+(0x7629) takes `itcFirst`, `itcLim` and the value as a u16.
 
-- Bits 2–4 (`textFlow`) of each cell's TC80 `TCGRF` in the row's `sprmTDefTable`: 3 on the `btLr` cells, 1 on the `tbRl` cells, 0 on the others.
-- One `sprmTTextFlow` (0x7629) per turned cell, with a 4-byte operand: `itcFirst`, `itcLim`, then the same value as a u16. Row 1 has `01 02 03 00` and `02 03 01 00`.
-
-**The `.docx`** has `w:textDirection` `btLr` / `tbRl` on exactly those four cells.
-
-**Files:**
-
-- `turned-cells-word.pdf`: Word's export.
-- `turned-cells-base.pdf`: `wordcraft-cli convert turned-cells.doc`, built from wordcraft `main` f8ec3cc0 with craft-libs at its pin 93dac78c plus #2414. Every cell comes out horizontal, and the `.docx` it writes has no `w:textDirection`.
-- `turned-cells-fix.pdf`: the same build plus the fix. The four cells are turned, and the `.docx` it writes has the same four `w:textDirection` as Word's.
-- `side-by-side.png`: Word, base and fix, left to right.
-
-The fix renders the columns narrower than Word does. That comes from the cell widths of a `.doc`, which #1856 and #2117 cover, and has nothing to do with the text direction.
+[MS-DOC]: https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-doc/3dd0761d-34df-4b7a-8d62-d74e23b2d1e0
