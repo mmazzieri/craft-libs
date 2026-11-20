@@ -1,16 +1,14 @@
-# Synthetic reproducer: a `0x81` bold toggle in a bold paragraph style (.doc)
+# Bold toggled against the paragraph style in a .doc (comment on storytold/craft-libs#1804)
 
-`make-bold-toggle.ps1` builds `bold-toggle.doc` with Word 2016 via COM. The text is invented.
+This branch held a `.doc` and a `.docx` saved by Word through a COM script, Word's PDF and the
+output of two builds. They are removed: under the clean-room standard a fixture is written by a
+committed script from our own inputs, and an agent does not drive Word to make one.
 
-- A paragraph style `Bold Body`, based on Normal, is bold. Its CHPX is `35 08 81`.
-- One paragraph in the body and one inside a one-cell table use it.
-- In each, the middle stretch is set not bold. Word stores it as `sprmCFBold` `0x81` (`35 08 81`, "the opposite of the style").
+A `.doc` cannot be written here without a compound-file writer, so there is no replacement file.
+The case it showed, in terms of [MS-DOC]: a paragraph style whose CHPX turns bold on
+(`sprmCFBold`, `35 08 01`), and a run in a paragraph of that style, in the body or in a table
+cell, whose CHPX holds `sprmCFBold` with the operand 0x81 (`35 08 81`, "the opposite of the
+style"). The run is not bold. Resolving 0x81 before the paragraph's style is known reads it as
+bold.
 
-| file | what it is |
-|---|---|
-| `bold-toggle.doc` | the file Word saved |
-| `bold-toggle.docx`, `bold-toggle.pdf` | Word's own save of the same document: the middle stretches are not bold (`<w:b w:val="0"/>`) |
-| `read-craft-libs-main.docx` | `craft_doc_binary::read` then `craft_docx::write`, craft-libs `main` 8048f8ef: both middle stretches come out **bold** (`<w:b/>`) |
-| `read-pr-1804.docx` | the same with the head of #1804 (05124b47): not bold, in the body and in the cell, as Word |
-
-No personal properties: checked on the DOC, the DOCX and the PDF.
+[MS-DOC]: https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-doc/3dd0761d-34df-4b7a-8d62-d74e23b2d1e0
